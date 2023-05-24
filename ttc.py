@@ -7,55 +7,15 @@ import curses.textpad
 import math
 import random
 import sys
+import ttcCurses as tc
 
+global pad_y
+pad_y = 0
 
 # Enter your Twitch credentials here
-BOT_NICK = 
-OAUTH_TOKEN = 
-CHANNEL = 
-
-
-print('curses init')
-stdscr = curses.initscr()
-curses.noecho()
-curses.cbreak()
-curses.curs_set(False)
-if curses.has_colors():
-  curses.start_color()
-curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
-curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
-curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_GREEN)
-print("HELLO")
-caughtExceptions = ""
-try:
-    sidebar1Width = 25
-    sidebar1Height = curses.LINES - 5
-    textfieldWidth = curses.COLS - sidebar1Width
-    textfieldHeight = curses.LINES - 5
-    window3Width = curses.COLS
-    window3Height = 5
-    sidebar1 = [0,0, sidebar1Width, sidebar1Height]
-    textfield = [sidebar1Width,0,textfieldWidth,textfieldHeight]
-    window3 = [0, curses.LINES-5, window3Width, window3Height]
-
-    sidebarObj = curses.newwin(sidebar1[3], sidebar1[2], sidebar1[1], sidebar1[0])
-    sidebarObj.box()
-
-    textfieldObj = curses.newwin(textfield[3], textfield[2], textfield[1], textfield[0])
-    textfieldObj.keypad(True)
-    textfieldObj.box()
-
-    inputBoxObj = curses.newwin(window3[3], window3[2], window3[1], window3[0])
-    inputBoxObj.box()
-
-except Exception as err:
-    caughtExceptions = str(err)
-
-    curses.nocbreak()
-    curses.echo()
-    curses.curs_set(True)
-
-    curses.endwin()
+OAUTH_TOKEN = 'oauth:fg3bd5c7ecwd2f8kpiu2qpnllhlyoo'
+BOT_NICK = 'skitz_gaming'
+CHANNEL = 'monkeys_forever'
 
 
 class MyClient(twitchio.Client):
@@ -79,14 +39,6 @@ class MyClient(twitchio.Client):
         await self.connected.channels[0].send(text)
 
 
-
-
-def getSidebar():
-  return sidebarObj
-def getTextField():
-  return textfieldObj
-def getInputBox():
-  return inputBoxObj
 #def parser2(message):
 #    if len(message) >= 175:
 #        return [string]
@@ -115,25 +67,38 @@ def addMessage(username, message):
       Kappa = c.create_placement('Kappa', x=0, y=spot, scaler=ueberzug.ScalerOption.COVER.value)
       Kappa.path = './kappa.png'
     message = message[:175]
-    sidebarObj.addstr(username + '\n')
-    textfieldObj.addstr('\t' + message + '\n')
+    tc.getSidePad().addstr(username + '\n')
+    #tc.getSidePad().addstr('-----\n')
+    tc.getTextPad().addstr(message + '\n')
+    #tc.getTextPad().addstr('-----\n')
+    #tc.getSidePad().scroll(-1)
+    #tc.getTextPad().scroll(-1)
+    #textfieldObj.addstr('\t' + message + '\n', curses.A_UNDERLINE)
     #inputBoxObj.addstr(username + ' : ' + message)
 
 c = ueberzug.Canvas()
 
 async def main():
-
+    pad_y = 1
     #messagecount = 0
     #initCurses()
-    textfield = getTextField()
-    sidebar = getSidebar()
+    textfield = tc.getTextField()
+    sidebar = tc.getSidebar()
     client = MyClient()
+    textpad = tc.getTextPad()
+    sidepad = tc.getSidePad()
     #sidebar.addstr('this is the sidebar')
-    inputbox = getInputBox()
+    inputbox = tc.getInputBox()
+    pad_y += 1
+    #inputpad = tc.getInputPad()
+    #pad_y = 0
 
     await client.connect()
     while True:
         try:
+            textpad.refresh(pad_y,0,1,27,25,75)
+            sidepad.refresh(pad_y,0,1,1,50,45)
+            #inputpad.refresh(0,0,28,28,50,50)
             textfield.refresh()
             sidebar.refresh()
             inputbox.refresh()
