@@ -8,15 +8,20 @@ import math
 import random
 import sys
 import ttcCurses as tc
+import random
 
 global pad_y
 pad_y = 0
 
 # Enter your Twitch credentials here
-OAUTH_TOKEN = 'oauth:fg3bd5c7ecwd2f8kpiu2qpnllhlyoo'
-BOT_NICK = 'skitz_gaming'
-CHANNEL = 'monkeys_forever'
+OAUTH_TOKEN = ''
+BOT_NICK = ''
+CHANNEL = ''
 
+#global emoteList
+emoteList = []
+#global emoteRequest
+emoteRequest = False
 
 class MyClient(twitchio.Client):
     nick = BOT_NICK
@@ -48,65 +53,81 @@ class MyClient(twitchio.Client):
 #    list = parser2(message)
 #    return ' '.join(str(x) for x in message)
 
+def emoteUpdate():
+    for emote in emoteList:
+        emote.x += 1
+
+def addEmote(object):
+    if len(emoteList) > 10:
+        emoteList.pop(0)
+    emoteList.append(object)
+    emoteRequest = True
+
 def lexer(content): #just for testing purposes, will fix later
     words = content.split()
     count = 0
     for x in words:
       if x == 'Kappa':
-        return count
+        #addEmote(canvas.create_placement('', x=count, y=10, scaler=ueberzug.ScalerOption.COVER.value, path='../test/kappa.png'))
+        global emoteRequest
+        emoteRequest = True
+        tc.getSidePad().addstr(str(emoteRequest) + '\n')
+        tc.getTextPad().addstr(str(emoteRequest) + '\n')
       else:
-        count = count + len(x)
+          count += len(x)
 
 
-def addMessage(username, message):
-    #messagecount = messagecount + 1
-    #if messagecount > 27:
-    #  pass
-    spot = lexer(message)
-    if spot != None:
-      Kappa = c.create_placement('Kappa', x=0, y=spot, scaler=ueberzug.ScalerOption.COVER.value)
-      Kappa.path = './kappa.png'
-    message = message[:175]
+def addMessage(username, Message):
+    lexer(Message)
     tc.getSidePad().addstr(username + '\n')
     #tc.getSidePad().addstr('-----\n')
-    tc.getTextPad().addstr(message + '\n')
-    #tc.getTextPad().addstr('-----\n')
-    #tc.getSidePad().scroll(-1)
-    #tc.getTextPad().scroll(-1)
+    tc.getTextPad().addstr(Message + '\n')
     #textfieldObj.addstr('\t' + message + '\n', curses.A_UNDERLINE)
     #inputBoxObj.addstr(username + ' : ' + message)
+    emoteUpdate()
 
-c = ueberzug.Canvas()
-
+#@uberzug.Canvas()
 async def main():
-    pad_y = 1
-    #messagecount = 0
-    #initCurses()
-    textfield = tc.getTextField()
-    sidebar = tc.getSidebar()
-    client = MyClient()
-    textpad = tc.getTextPad()
-    sidepad = tc.getSidePad()
-    #sidebar.addstr('this is the sidebar')
-    inputbox = tc.getInputBox()
-    pad_y += 1
-    #inputpad = tc.getInputPad()
-    #pad_y = 0
+    with ueberzug.Canvas() as c:
+#    demo = canvas.create_placement('textscreen', x=10, y=10)
+        global emoteRequest
+        pad_y = 1
+        #messagecount = 0
+        #initCurses()
+        textfield = tc.getTextField()
+        sidebar = tc.getSidebar()
+        client = MyClient()
+        textpad = tc.getTextPad()
+        sidepad = tc.getSidePad()
+        #sidebar.addstr('this is the sidebar')
+        inputbox = tc.getInputBox()
+        demo = c.create_placement('demo',x=0,y=0,scaler=ueberzug.ScalerOption.COVER.value, path='../test/kappa.png')
+        #pad_y += 1
+        #inputpad = tc.getInputPad()
+        #pad_y = 0
 
-    await client.connect()
-    while True:
-        try:
-            textpad.refresh(pad_y,0,1,27,25,75)
-            sidepad.refresh(pad_y,0,1,1,50,45)
-            #inputpad.refresh(0,0,28,28,50,50)
-            textfield.refresh()
-            sidebar.refresh()
-            inputbox.refresh()
-            #cursesApp.getInputBox.getch()
-            await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            await client.close()
-            break
+        await client.connect()
+        while True:
+            with c.lazy_drawing:
+                try:
+                    if emoteRequest:
+                        addEmote(c.create_placement(random.randint(0,99999999), x=10, y=10, path='../test/kappa.png]'))
+                        emoteRequest = False
+                        tc.getSidePad().addstr(str(emoteRequest) + '\n')
+                        tc.getTextPad().addstr(str(emoteRequest) + '\n')
+                    textpad.refresh(0,0,1,27,23,185)
+                    sidepad.refresh(0,0,1,1,23,22)
+                    #inputpad.refresh(0,0,28,28,50,50)
+                    textfield.refresh()
+                    sidebar.refresh()
+                    inputbox.refresh()
+                    demo.x = demo.x + 1
+                    demo.y = demo.y - 1
+                    #cursesApp.getInputBox.getch()
+                    await asyncio.sleep(1)
+                except KeyboardInterrupt:
+                    await client.close()
+                    break
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
